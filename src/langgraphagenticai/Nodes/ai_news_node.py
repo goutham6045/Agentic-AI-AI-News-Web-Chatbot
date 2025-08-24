@@ -1,4 +1,4 @@
-from tavily import TavilyClient
+from langchain_tavily import TavilySearch
 from langchain_core.prompts import ChatPromptTemplate
 
 class AINewsNode:
@@ -6,7 +6,7 @@ class AINewsNode:
         """
         Initializes the AI News Node with API keys for Tavily and GROQ.
         """
-        self.tavily = TavilyClient()
+        self.tavily = TavilySearch()
         self.llm = llm
         # this is use{{d to capture varrious steps in this file so that later can be used for the steps shown
         self.state = {}
@@ -85,4 +85,5 @@ class AINewsNode:
             f.write(f"# {frequency.capitalize()} AI News Summary\n\n")
             f.write(summary)
         self.state['filename'] = filename
+
         return self.state
