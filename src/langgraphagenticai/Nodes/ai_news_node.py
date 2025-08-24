@@ -1,14 +1,14 @@
 from langchain_tavily import TavilySearch
 from langchain_core.prompts import ChatPromptTemplate
 
+
 class AINewsNode:
     def __init__(self, llm):
         """
-        Initializes the AI News Node with API keys for Tavily and GROQ.
+        Initializes the AI News Node with TavilySearch and GROQ LLM.
         """
         self.tavily = TavilySearch()
         self.llm = llm
-        # this is use{{d to capture varrious steps in this file so that later can be used for the steps shown
         self.state = {}
 
     def fetch_news(self, state: dict) -> dict:
@@ -23,23 +23,23 @@ class AINewsNode:
         """
         frequency = state['messages'][0].content.lower()
         self.state['frequency'] = frequency
-        time_range_map = {'daily': 'd', 'weekly': 'w', 'monthly': 'm', 'year': 'y'}
+        time_range_map = {'daily': 'day', 'weekly': 'week',
+                          'monthly': 'month', 'year': 'year'}
         days_map = {'daily': 1, 'weekly': 7, 'monthly': 30, 'year': 366}
 
-        response = self.tavily.search(
-            query="Top Aritificial Intelligence (AI) technology news Globally",
-            topic="news",
-            time_range=time_range_map[frequency],
-            include_answer="advanced",
-            max_results=20,
-            days=days_map[frequency],
-
-        )
+        response = self.tavily.invoke({
+            "query": "Top Artificial Intelligence (AI) technology news Globally",
+            "topic": "news",
+            "time_range": time_range_map[frequency],
+            "include_answer": "advanced",
+            "max_results": 20,
+            "days": days_map[frequency],
+        })
 
         state['news_data'] = response.get('results', [])
         self.state['news_data'] = state['news_data']
         return state
-    
+
     def summarize_news(self, state: dict) -> dict:
         """
         Summarizes the fetched news articles using the LLM.
@@ -72,12 +72,13 @@ class AINewsNode:
 
         ])
 
-        response = self.llm.invoke(prompt_template.format(articles=articles_str))
+        response = self.llm.invoke(
+            prompt_template.format(articles=articles_str))
         state['summary'] = response.content
         self.state['summary'] = state['summary']
         return self.state
-    
-    def save_result(self,state):
+
+    def save_result(self, state):
         frequency = self.state['frequency']
         summary = self.state['summary']
         filename = f"./AI_News/{frequency}_summary.md"
@@ -85,5 +86,4 @@ class AINewsNode:
             f.write(f"# {frequency.capitalize()} AI News Summary\n\n")
             f.write(summary)
         self.state['filename'] = filename
-
         return self.state
